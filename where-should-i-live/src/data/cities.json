@@ -1,0 +1,27 @@
+[
+    {
+        "name": "Huntsville",
+        "average_temperature": 50,
+        "political_lean": 75
+    },
+    {
+        "name": "Boston",
+        "average_temperature": 0,
+        "political_lean": 0
+    },
+    {
+        "name": "Orlando",
+        "average_temperature": 100,
+        "political_lean": 50
+    },
+    {
+        "name": "Denver",
+        "average_temperature": 25,
+        "political_lean": 25
+    },
+    {
+        "name": "Mobile",
+        "average_temperature": 75,
+        "political_lean": 100
+    }
+]

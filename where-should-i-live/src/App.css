@@ -5,6 +5,20 @@
   text-align: center;
 }
 
+.main-header {
+  color: rgb(1, 65, 1);
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 2rem;
+  font-size: 4rem;
+  letter-spacing: 1px;
+}
+
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
