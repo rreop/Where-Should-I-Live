@@ -23,5 +23,30 @@
         "name": "Mobile",
         "average_temperature": 75,
         "political_lean": 100
+    },
+    {
+        "name": "San Francisco",
+        "average_temperature": 37.5,
+        "political_lean": 12.5
+    },
+    {
+        "name": "Seattle",
+        "average_temperature": 50,
+        "political_lean": 25
+    },
+    {
+        "name": "Austin",
+        "average_temperature": 62.5,
+        "political_lean": 37.5
+    },
+    {
+        "name": "New York",
+        "average_temperature": 12.5,
+        "political_lean": 87.5
+    },
+    {
+        "name": "Los Angeles",
+        "average_temperature": 75,
+        "political_lean": 12.5
     }
 ]
