@@ -2,132 +2,116 @@ import { useState } from 'react'
 import cities from './data/cities.json'
 import './App.css'
 
-// QuizQuestion function to encapsulate slider and importance state
-
-function QuizQuestion({
-  label,
-  min,
-  max,
-  initialValue,
-  unit,
-  importanceOptions,
-  initialImportance,
-  steps,
-  stepLabels
+// Slider component for each question
+function Slider({ 
+  sliderMinimum = 0, 
+  sliderMaximum = 100,
+  value,
+  setValue
 }) {
-  const [value, setValue] = useState(initialValue);
-  const [importance, setImportance] = useState(initialImportance);
-
-  // Snap to nearest step if steps provided
-  const handleSliderChange = val => {
-    let newValue = val;
-    if (steps) {
-      newValue = steps.reduce((prev, curr) => Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev);
-    }
-    setValue(newValue);
-  };
-
-  return {
-    value,
-    importance,
-    setValue: handleSliderChange,
-    setImportance,
-    label,
-    min,
-    max,
-    unit,
-    importanceOptions,
-    steps,
-    stepLabels
-  };
-}
-
-// Reusable ImportanceButtonList component
-function ImportanceButtonList({ options, selected, onSelect }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', marginBottom: '2rem' }}>
-      {options.map(option => (
-        <button
-          key={option.value}
-          style={{
-            background: selected === option.value ? '#cce5cc' : '',
-            marginBottom: '0.5rem',
-            width: '150px',
-            height: '62px',
-            textAlign: 'center'
-          }}
-          onClick={() => onSelect(option.value)}
-          type="button"
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// Reusable SliderInput component
-function SliderInput({ label, min, max, value, onChange, unit }) {
-  return (
-    <div style={{ marginBottom: '1.5rem' }}>
-      <h2>{label}</h2>
+    <div>
       <input
         type="range"
-        min={min}
-        max={max}
+        min={sliderMinimum}
+        max={sliderMaximum}
         value={value}
-        onChange={e => onChange(Number(e.target.value))}
+        onChange={e => setValue(Number(e.target.value))}
         style={{ width: '400px' }}
       />
-      <span style={{ marginLeft: '1rem' }}>{value}{unit}</span>
+      <span style={{ marginLeft: '1rem', fontWeight: 'bold', color: '#14532d' }}>{value}</span>
     </div>
   );
 }
 
-function App() {
-  const importanceOptions = [
-    { label: "Least Important", value: 25 },
-    { label: "Somewhat Important", value: 37.5 },
-    { label: "Important", value: 50 },
-    { label: "Very Important", value: 62.5 },
-    { label: "Most Important", value: 75 }
+// Importance selector for each question
+function ImportanceList({ selected, setSelected }) {
+  const options = [
+    "Least Important",
+    "Somewhat Important",
+    "Important",
+    "Very Important",
+    "Most Important"
   ];
 
-  // Create quiz questions using the QuizQuestion function
-  const temperatureQuestion = QuizQuestion({
-    label: "Choose your preferred average temperature:",
-    min: 20,
-    max: 100,
-    initialValue: 60,
-    unit: "°F",
-    importanceOptions,
-    initialImportance: 50,
-    steps: [20, 40, 60, 80, 100],
-    stepLabels: ["Cold", "Cool", "Temperate", "Warm", "Hot"]
-  });
+  return (
+    <div style={{ marginBottom: '2rem' }}>
+      <h2 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}> How important is this to you? </h2>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
+        {options.map(label => (
+          <button
+            key={label}
+            onClick={() => setSelected(label)}
+            style={{
+              width: '150px',
+              height: '62px',
+              textAlign: 'center',
+              marginRight: '0.5rem',
+              background: selected === label ? '#cce5cc' : ''
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-  const politicalQuestion = QuizQuestion({
-    label: "Choose your preferred political leaning:",
-    min: 0,
-    max: 100,
-    initialValue: 50,
-    unit: "",
-    importanceOptions,
-    initialImportance: 50,
-    steps: null,
-    stepLabels: null
-  });
+// QuizQuestion as a function that returns an object with state and render method
+function createQuizQuestion(label, question_minimum, question_maximum) {
+  const useQuizQuestion = () => {
+    const [sliderValue, setSliderValue] = useState((question_minimum + question_maximum) / 2);
+    const [importance, setImportance] = useState("Important");
+    // TODO: fix this...
+    var importanceValue = 1;
+    if (importance === "Least Important") importanceValue = 0.2;
+    else if (importance === "Somewhat Important") importanceValue = 0.4;
+    else if (importance === "Important") importanceValue = 0.6;
+    else if (importance === "Very Important") importanceValue = 0.8;
+    else if (importance === "Most Important") importanceValue = 1;    
 
-  // Assign a score to each city based on closeness to user choices
+    const render = () => (
+      <>
+        <h2 style={{ fontSize: '2rem', color: '#14532d', fontWeight: 'bold', marginBottom: '1rem', marginTop: '4rem' }}>{label}</h2>
+        <Slider
+          sliderMinimum={question_minimum}
+          sliderMaximum={question_maximum}
+          value={sliderValue}
+          setValue={setSliderValue}
+        />
+        <ImportanceList 
+          selected={importance} 
+          setSelected={setImportance}           
+        />
+      </>
+    );
+    return { sliderValue, importanceValue, importance, render };
+  };
+  return useQuizQuestion;
+}
+
+// Create questions as instances of QuizQuestion
+const questionHooks = [
+  createQuizQuestion("What is your ideal temperature?", 0, 100),
+  createQuizQuestion("What is your preferred political lean?", 0, 100)
+];
+
+function App() {
+  // Call each question hook to get state and render function
+  const questionStates = questionHooks.map(hook => hook());
+
+  // Score cities based on user preferences
   const scoredCities = cities.map(city => {
-    const tempDiff = Math.abs(city.average_temperature - temperatureQuestion.value);
-    const polDiff = Math.abs(city.political_lean - politicalQuestion.value);
-    const score = ((tempDiff * temperatureQuestion.importance) + (polDiff * politicalQuestion.importance)) / 2;
+    const tempDiff = Math.abs(city.average_temperature - questionStates[0].sliderValue);
+    const polDiff = Math.abs(city.political_lean - questionStates[1].sliderValue);
+    const score = ((tempDiff * questionStates[0].importanceValue) + (polDiff * questionStates[1].importanceValue)) / 2;
     return { ...city, score };
   });
 
-  // Sort cities by score (lower score = closer match)
+  // Sort cities by score
   const sortedCities = scoredCities.sort((a, b) => a.score - b.score);
+
 
   return (
     <>
@@ -135,43 +119,26 @@ function App() {
         Where should I live?
       </h1>
 
-      {/* Temperature Question */}
-      <SliderInput
-        label={temperatureQuestion.label}
-        min={temperatureQuestion.min}
-        max={temperatureQuestion.max}
-        value={temperatureQuestion.value}
-        onChange={temperatureQuestion.setValue}
-        unit={temperatureQuestion.unit}
-      />
-      {/* Temperature labels under the slider */}
-      <div style={{ width: '400px', display: 'flex', justifyContent: 'space-between', margin: '-1.75rem 0 1.5rem 155px' }}>
-        {temperatureQuestion.stepLabels.map(label => (
-          <span key={label}>{label}</span>
-        ))}
-      </div>
-      <p>How important is this to you?</p>
-      <ImportanceButtonList
-        options={temperatureQuestion.importanceOptions}
-        selected={temperatureQuestion.importance}
-        onSelect={temperatureQuestion.setImportance}
-      />
+      {/* Questions */}
+      {questionStates.map((question, index) => (
+        <div key={index}>{question.render()}</div>
+      ))}
 
-      {/* Political Question */}
-      <SliderInput
-        label={politicalQuestion.label}
-        min={politicalQuestion.min}
-        max={politicalQuestion.max}
-        value={politicalQuestion.value}
-        onChange={politicalQuestion.setValue}
-        unit={politicalQuestion.unit}
-      />
-      <p>How important is this to you?</p>
-      <ImportanceButtonList
-        options={politicalQuestion.importanceOptions}
-        selected={politicalQuestion.importance}
-        onSelect={politicalQuestion.setImportance}
-      />
+      {/* Debugging */}
+      <h1 className="main-header" style={{ marginTop: '10rem' }}>
+        {questionStates[0].sliderValue}
+        {"-"}
+        {questionStates[0].importanceValue}
+        {"-"}
+        {Math.floor(questionStates[0].sliderValue * questionStates[0].importanceValue)}
+        {"..........."}
+        {questionStates[1].sliderValue}
+        {"-"}
+        {questionStates[1].importanceValue}
+        {"-"}
+        {Math.floor(questionStates[1].sliderValue * questionStates[1].importanceValue)}
+      </h1>
+
 
       <h2>City List</h2>
       <ol>
@@ -182,8 +149,10 @@ function App() {
           </li>
         ))}
       </ol>
+
+
     </>
   );
 }
 
-export default App
+export default App;
